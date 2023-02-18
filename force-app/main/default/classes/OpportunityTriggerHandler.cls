@@ -64,6 +64,62 @@ public with sharing class OpportunityTriggerHandler {
                 insert renewalProducts;
             }
         }
-        }
+        //********************************************************* */ 
+        public static void checkAccountForOpenOpps(List<Opportunity> newOpportunities) {
+                List<Opportunity> opportunitiesToUpdate = new List<Opportunity>();
+                Set<Id> accountIds = new Set<Id>();
                 
-    
+                // Get the account IDs for all new opportunities
+                for(Opportunity opp : newOpportunities) {
+                    accountIds.add(opp.AccountId);
+                }
+                
+                // Query for all open opportunities for the same accounts
+                
+                List<Opportunity> openOpportunities = [
+                    SELECT Id, AccountId FROM Opportunity
+                    WHERE AccountId IN :accountIds AND StageName !='Closed Won' AND StageName !='Closed Lost'
+                ];
+                Map<Id,Opportunity> accountOppMap = new Map<Id, Opportunity>();
+                for(Opportunity openOpps: openOpportunities){
+                    accountOppMap.put(openOpps.AccountId , openOpps);
+                }
+                System.debug(accountOppMap);
+                
+                // Query for the account annual revenue for all accounts in the set
+                Map<Id, Account> accountsMap = new Map<Id, Account>([
+                    SELECT Id, AnnualRevenue FROM Account WHERE Id IN :accountIds
+                ]);
+                System.debug(accountsMap);
+                
+                // Loop through the new opportunities and update as necessary
+                for(Opportunity opp : newOpportunities) {
+                    if(!accountOppMap.containsKey(opp.AccountId)) {
+                        // Update the opportunity amount to 20% of the account's annual revenue
+                        Account acc = accountsMap.get(opp.AccountId);
+                        opp.Amount = acc.AnnualRevenue * 0.2;
+                        
+                        // Send a communication to another user to review the information (you'll need to update the recipient user ID and message)
+                        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+                        String[] sendingTo = new String[]{'adam.dalton@cloudkettle.com'}; 
+                        mail.setToAddresses(sendingTo);
+                        mail.setSubject('New Opportunity to Review');
+                        mail.setPlainTextBody('Please review the following opportunity: ' + opp.Name);
+
+                        try {
+                            System.debug(' Sending a non-template email.');
+                            Messaging.sendEmail(new Messaging.SingleEmailMessage[] {mail}); 
+                            }
+                        catch (Exception e) {
+                                system.debug('Tried to send a non-template email and got an error:  ' + e);
+                            }    
+
+                        
+
+                    }
+          
+                }
+
+            }
+        
+}

@@ -1,3 +1,15 @@
+/*******************************************************************************************
+ * @Name         ScheduledSWAPIJob
+ * @Author       Adam Dalton
+ * @Date         01/25/2023
+ * @Group        Star Wars API Project
+ * @Description  This scheduled apex class contains all of the logic that calls on two other classes that make the HTTP callouts and create the SF records
+ *******************************************************************************************/
+/* MODIFICATION LOG
+ * Version          Developer          Date               Description
+ *-------------------------------------------------------------------------------------------
+ *  1.0              Adam      01/25/2023          Initial Creation
+ *******************************************************************************************/
 public with sharing class OpportunityTriggerHandler {
   public static void errorHandler(List<Opportunity> oppList) {
     List<OpportunityLineItem> productList = [
@@ -15,7 +27,12 @@ public with sharing class OpportunityTriggerHandler {
       }
     }
   }
-
+  /**************************************************************************************
+   * @Description  Method that is being used to make the GET request to SWAPI and create the assocaited Star Wars Planet record in Salesforce
+   * @Param		     N/A
+   * @Return       Void
+   * @Example
+   **************************************************************************************/
   public static void renewalOppty(
     List<Opportunity> newOpptyList,
     Map<Id, Opportunity> newOpptyMap,

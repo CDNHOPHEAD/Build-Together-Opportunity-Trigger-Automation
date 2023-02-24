@@ -5,6 +5,7 @@ trigger OpportunityTriggerV1 on Opportunity(
 ) {
   switch on Trigger.operationType {
     when BEFORE_INSERT {
+      OpportunityTriggerHandler.errorHandler(Trigger.new);
       OpportunityTriggerHandler.checkAccountForOpenOpps(Trigger.new);
     }
     when BEFORE_UPDATE {
